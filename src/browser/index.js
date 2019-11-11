@@ -1,5 +1,8 @@
 import React from "react";
 import { hydrate } from "react-dom";
 import App from "../shared/App";
+import getFacts from "../shared/facts";
 
-hydrate(<App />, document.getElementById("app"));
+getFacts().then(facts =>
+  hydrate(<App data={facts} />, document.getElementById("app"))
+);

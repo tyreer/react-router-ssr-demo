@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { renderToString } from "react-dom/server";
+import getFacts from "../shared/facts";
 import App from "../shared/App";
 import React from "react";
 
@@ -14,9 +15,10 @@ app.use(cors());
 app.use(express.static("public"));
 
 app.get("*", (req, res, next) => {
-  const markup = renderToString(<App />);
+  getFacts().then(facts => {
+    const markup = renderToString(<App data={facts} />);
 
-  res.send(`
+    res.send(`
     <!DOCTYPE html>
     <html>
       <head>
@@ -29,6 +31,7 @@ app.get("*", (req, res, next) => {
       </body>
     </html>
   `);
+  });
 });
 
 app.listen(3000, () => {

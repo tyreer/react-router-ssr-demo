@@ -1,13 +1,8 @@
-import React, { Component } from 'react'
+import React from "react";
 
-class App extends Component {
-  render() {
-    return (
-      <div>
-        Hello World
-      </div>
-    )
-  }
-}
+const App = ({ data }) => {
+  const factsListItems = data.map((fact, i) => <li key={i}>{fact.text}</li>);
+  return <ul>{factsListItems}</ul>;
+};
 
-export default App
+export default App;
