@@ -184,8 +184,6 @@ var _routes2 = _interopRequireDefault(_routes);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var app = (0, _express2.default)();
-// import { fetchPopularRepos } from "../shared/api";
-
 
 app.use((0, _cors2.default)());
 
