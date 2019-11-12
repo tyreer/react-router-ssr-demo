@@ -496,14 +496,12 @@ var _App = __webpack_require__(17);
 
 var _App2 = _interopRequireDefault(_App);
 
-var _facts = __webpack_require__(18);
-
-var _facts2 = _interopRequireDefault(_facts);
+var _api = __webpack_require__(19);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-(0, _facts2.default)().then(function (facts) {
-  return (0, _reactDom.hydrate)(_react2.default.createElement(_App2.default, { data: facts }), document.getElementById("app"));
+(0, _api.fetchPopularRepos)().then(function (data) {
+  return (0, _reactDom.hydrate)(_react2.default.createElement(_App2.default, { data: data }), document.getElementById("app"));
 });
 
 /***/ }),
@@ -12029,28 +12027,46 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
+var _Grid = __webpack_require__(18);
+
+var _Grid2 = _interopRequireDefault(_Grid);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var App = function App(_ref) {
-  var data = _ref.data;
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var factsListItems = data.map(function (fact, i) {
-    return _react2.default.createElement(
-      "li",
-      { key: i },
-      fact.text
-    );
-  });
-  return _react2.default.createElement(
-    "ul",
-    null,
-    factsListItems
-  );
-};
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var App = function (_Component) {
+  _inherits(App, _Component);
+
+  function App() {
+    _classCallCheck(this, App);
+
+    return _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).apply(this, arguments));
+  }
+
+  _createClass(App, [{
+    key: "render",
+    value: function render() {
+      return _react2.default.createElement(
+        "div",
+        null,
+        _react2.default.createElement(_Grid2.default, { data: this.props.data })
+      );
+    }
+  }]);
+
+  return App;
+}(_react.Component);
 
 exports.default = App;
 
@@ -12065,22 +12081,116 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _isomorphicFetch = __webpack_require__(19);
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Grid = function (_Component) {
+  _inherits(Grid, _Component);
+
+  function Grid() {
+    _classCallCheck(this, Grid);
+
+    return _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).apply(this, arguments));
+  }
+
+  _createClass(Grid, [{
+    key: "render",
+    value: function render() {
+      var repos = this.props.data;
+
+      return _react2.default.createElement(
+        "ul",
+        { style: { display: "flex", flexWrap: "wrap" } },
+        repos.map(function (_ref) {
+          var name = _ref.name,
+              owner = _ref.owner,
+              stargazers_count = _ref.stargazers_count,
+              html_url = _ref.html_url;
+          return _react2.default.createElement(
+            "li",
+            { key: name, style: { margin: 30 } },
+            _react2.default.createElement(
+              "ul",
+              null,
+              _react2.default.createElement(
+                "li",
+                null,
+                _react2.default.createElement(
+                  "a",
+                  { href: html_url },
+                  name
+                )
+              ),
+              _react2.default.createElement(
+                "li",
+                null,
+                "@",
+                owner.login
+              ),
+              _react2.default.createElement(
+                "li",
+                null,
+                stargazers_count,
+                " stars"
+              )
+            )
+          );
+        })
+      );
+    }
+  }]);
+
+  return Grid;
+}(_react.Component);
+
+exports.default = Grid;
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.fetchPopularRepos = fetchPopularRepos;
+
+var _isomorphicFetch = __webpack_require__(20);
 
 var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var getFacts = function getFacts() {
-  return (0, _isomorphicFetch2.default)("https://ssr-react.firebaseio.com/facts.json").then(function (res) {
-    return res.json();
-  });
-};
+function fetchPopularRepos() {
+  var language = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "all";
 
-exports.default = getFacts;
+  var encodedURI = encodeURI("https://api.github.com/search/repositories?q=stars:>1+language:" + language + "&sort=stars&order=desc&type=Repositories");
+
+  return (0, _isomorphicFetch2.default)(encodedURI).then(function (data) {
+    return data.json();
+  }).then(function (repos) {
+    return repos.items;
+  }).catch(function (error) {
+    console.warn(error);
+    return null;
+  });
+}
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12090,11 +12200,11 @@ exports.default = getFacts;
 // on the global object (window or self)
 //
 // Return that as the export for use in Webpack, Browserify etc.
-__webpack_require__(20);
+__webpack_require__(21);
 module.exports = self.fetch.bind(self);
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

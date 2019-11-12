@@ -1,8 +1,8 @@
 import React from "react";
 import { hydrate } from "react-dom";
 import App from "../shared/App";
-import getFacts from "../shared/facts";
+import { fetchPopularRepos } from "../shared/api";
 
-getFacts().then(facts =>
-  hydrate(<App data={facts} />, document.getElementById("app"))
+fetchPopularRepos().then(data =>
+  hydrate(<App data={data} />, document.getElementById("app"))
 );

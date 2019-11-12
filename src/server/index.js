@@ -1,9 +1,11 @@
 import express from "express";
 import cors from "cors";
+import React from "react";
 import { renderToString } from "react-dom/server";
 import getFacts from "../shared/facts";
+
 import App from "../shared/App";
-import React from "react";
+import { fetchPopularRepos } from "../shared/api";
 
 const app = express();
 
@@ -15,22 +17,22 @@ app.use(cors());
 app.use(express.static("public"));
 
 app.get("*", (req, res, next) => {
-  getFacts().then(facts => {
-    const markup = renderToString(<App data={facts} />);
+  fetchPopularRepos().then(data => {
+    const markup = renderToString(<App data={data} />);
 
     res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>SSR with RR</title>
-        <script src="/bundle.js" defer></script>
-      </head>
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>SSR with RR</title>
+            <script src="/bundle.js" defer></script>
+          </head>
 
-      <body>
-        <div id="app">${markup}</div>
-      </body>
-    </html>
-  `);
+          <body>
+            <div id="app">${markup}</div>
+          </body>
+        </html>
+      `);
   });
 });
 
