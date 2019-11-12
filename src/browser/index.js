@@ -1,8 +1,11 @@
 import React from "react";
 import { hydrate } from "react-dom";
 import App from "../shared/App";
-import { fetchPopularRepos } from "../shared/api";
+import { BrowserRouter } from "react-router-dom";
 
-fetchPopularRepos().then(data =>
-  hydrate(<App data={data} />, document.getElementById("app"))
+hydrate(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>,
+  document.getElementById("app")
 );

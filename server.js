@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -73,7 +73,7 @@ module.exports = require("react");
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = require("isomorphic-fetch");
+module.exports = require("react-router-dom");
 
 /***/ }),
 /* 2 */
@@ -82,11 +82,82 @@ module.exports = require("isomorphic-fetch");
 "use strict";
 
 
-var _express = __webpack_require__(3);
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _Home = __webpack_require__(10);
+
+var _Home2 = _interopRequireDefault(_Home);
+
+var _Grid = __webpack_require__(11);
+
+var _Grid2 = _interopRequireDefault(_Grid);
+
+var _api = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var routes = [{
+  path: "/",
+  exact: true,
+  component: _Home2.default
+}, {
+  path: "/popular/:id",
+  component: _Grid2.default,
+  fetchInitialData: function fetchInitialData() {
+    var path = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";
+    return (0, _api.fetchPopularRepos)(path.split("/").pop());
+  }
+}];
+
+exports.default = routes;
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.fetchPopularRepos = fetchPopularRepos;
+
+var _isomorphicFetch = __webpack_require__(12);
+
+var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function fetchPopularRepos() {
+  var language = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "all";
+
+  var encodedURI = encodeURI("https://api.github.com/search/repositories?q=stars:>1+language:" + language + "&sort=stars&order=desc&type=Repositories");
+
+  return (0, _isomorphicFetch2.default)(encodedURI).then(function (data) {
+    return data.json();
+  }).then(function (repos) {
+    return repos.items;
+  }).catch(function (error) {
+    console.warn(error);
+    return null;
+  });
+}
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _express = __webpack_require__(5);
 
 var _express2 = _interopRequireDefault(_express);
 
-var _cors = __webpack_require__(4);
+var _cors = __webpack_require__(6);
 
 var _cors2 = _interopRequireDefault(_cors);
 
@@ -94,21 +165,27 @@ var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _server = __webpack_require__(5);
+var _server = __webpack_require__(7);
 
-var _facts = __webpack_require__(6);
+var _reactRouterDom = __webpack_require__(1);
 
-var _facts2 = _interopRequireDefault(_facts);
+var _serializeJavascript = __webpack_require__(8);
 
-var _App = __webpack_require__(7);
+var _serializeJavascript2 = _interopRequireDefault(_serializeJavascript);
+
+var _App = __webpack_require__(9);
 
 var _App2 = _interopRequireDefault(_App);
 
-var _api = __webpack_require__(9);
+var _routes = __webpack_require__(2);
+
+var _routes2 = _interopRequireDefault(_routes);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var app = (0, _express2.default)();
+// import { fetchPopularRepos } from "../shared/api";
+
 
 app.use((0, _cors2.default)());
 
@@ -118,11 +195,22 @@ app.use((0, _cors2.default)());
 app.use(_express2.default.static("public"));
 
 app.get("*", function (req, res, next) {
-  (0, _api.fetchPopularRepos)().then(function (data) {
-    var markup = (0, _server.renderToString)(_react2.default.createElement(_App2.default, { data: data }));
+  var activeRoute = _routes2.default.find(function (route) {
+    return (0, _reactRouterDom.matchPath)(req.url, route);
+  }) || {};
 
-    res.send("\n        <!DOCTYPE html>\n        <html>\n          <head>\n            <title>SSR with RR</title>\n            <script src=\"/bundle.js\" defer></script>\n          </head>\n\n          <body>\n            <div id=\"app\">" + markup + "</div>\n          </body>\n        </html>\n      ");
-  });
+  var promise = activeRoute.fetchInitialData ? activeRoute.fetchInitialData(req.path) : Promise.resolve();
+
+  promise.then(function (data) {
+    var context = { data: data };
+    var markup = (0, _server.renderToString)(_react2.default.createElement(
+      _reactRouterDom.StaticRouter,
+      { location: req.url, context: context },
+      _react2.default.createElement(_App2.default, null)
+    ));
+
+    res.send("\n        <!DOCTYPE html>\n        <html>\n          <head>\n            <title>SSR with RR</title>\n            <script src=\"/bundle.js\" defer></script>\n            <script>window.__INITIAL_DATA__ = " + (0, _serializeJavascript2.default)(data) + "</script>\n          </head>\n\n          <body>\n            <div id=\"app\">" + markup + "</div>\n          </body>\n        </html>\n      ");
+  }).catch(next);
 });
 
 app.listen(3000, function () {
@@ -130,50 +218,31 @@ app.listen(3000, function () {
 });
 
 /***/ }),
-/* 3 */
+/* 5 */
 /***/ (function(module, exports) {
 
 module.exports = require("express");
 
 /***/ }),
-/* 4 */
+/* 6 */
 /***/ (function(module, exports) {
 
 module.exports = require("cors");
 
 /***/ }),
-/* 5 */
+/* 7 */
 /***/ (function(module, exports) {
 
 module.exports = require("react-dom/server");
 
 /***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
+/* 8 */
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _isomorphicFetch = __webpack_require__(1);
-
-var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var getFacts = function getFacts() {
-  return (0, _isomorphicFetch2.default)("https://ssr-react.firebaseio.com/facts.json").then(function (res) {
-    return res.json();
-  });
-};
-
-exports.default = getFacts;
+module.exports = require("serialize-javascript");
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -182,6 +251,8 @@ exports.default = getFacts;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -189,11 +260,23 @@ var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
-var _Grid = __webpack_require__(8);
+var _routes = __webpack_require__(2);
 
-var _Grid2 = _interopRequireDefault(_Grid);
+var _routes2 = _interopRequireDefault(_routes);
+
+var _reactRouterDom = __webpack_require__(1);
+
+var _Navbar = __webpack_require__(13);
+
+var _Navbar2 = _interopRequireDefault(_Navbar);
+
+var _NoMatch = __webpack_require__(14);
+
+var _NoMatch2 = _interopRequireDefault(_NoMatch);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -216,7 +299,29 @@ var App = function (_Component) {
       return _react2.default.createElement(
         "div",
         null,
-        _react2.default.createElement(_Grid2.default, { data: this.props.data })
+        _react2.default.createElement(_Navbar2.default, null),
+        _react2.default.createElement(
+          _reactRouterDom.Switch,
+          null,
+          _routes2.default.map(function (_ref) {
+            var path = _ref.path,
+                exact = _ref.exact,
+                C = _ref.component,
+                rest = _objectWithoutProperties(_ref, ["path", "exact", "component"]);
+
+            return _react2.default.createElement(_reactRouterDom.Route, {
+              key: path,
+              path: path,
+              exact: exact,
+              render: function render(props) {
+                return _react2.default.createElement(C, _extends({}, props, rest));
+              }
+            });
+          }),
+          _react2.default.createElement(_reactRouterDom.Route, { render: function render(props) {
+              return _react2.default.createElement(_NoMatch2.default, props);
+            } })
+        )
       );
     }
   }]);
@@ -227,7 +332,33 @@ var App = function (_Component) {
 exports.default = App;
 
 /***/ }),
-/* 8 */
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = Home;
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function Home() {
+  return _react2.default.createElement(
+    "div",
+    null,
+    "Select a Language"
+  );
+}
+
+/***/ }),
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -243,6 +374,8 @@ var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
+var _api = __webpack_require__(3);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -254,16 +387,77 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var Grid = function (_Component) {
   _inherits(Grid, _Component);
 
-  function Grid() {
+  function Grid(props) {
     _classCallCheck(this, Grid);
 
-    return _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).apply(this, arguments));
+    var _this = _possibleConstructorReturn(this, (Grid.__proto__ || Object.getPrototypeOf(Grid)).call(this, props));
+
+    var repos = void 0;
+    if (false) {
+      repos = window.__INITIAL_DATA__;
+      delete window.__INITIAL_DATA__;
+    } else {
+      repos = props.staticContext.data;
+    }
+
+    _this.state = {
+      repos: repos,
+      loading: repos ? false : true
+    };
+
+    _this.fetchRepos = _this.fetchRepos.bind(_this);
+    return _this;
   }
 
   _createClass(Grid, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      if (!this.state.repos) {
+        this.fetchRepos(this.props.match.params.id);
+      }
+    }
+  }, {
+    key: "componentDidUpdate",
+    value: function componentDidUpdate(prevProps, prevState) {
+      if (prevProps.match.params.id !== this.props.match.params.id) {
+        this.fetchRepos(this.props.match.params.id);
+      }
+    }
+  }, {
+    key: "fetchRepos",
+    value: function fetchRepos(lang) {
+      var _this2 = this;
+
+      this.setState(function () {
+        return {
+          loading: true
+        };
+      });
+
+      this.props.fetchInitialData(lang).then(function (repos) {
+        return _this2.setState(function () {
+          return {
+            repos: repos,
+            loading: false
+          };
+        });
+      });
+    }
+  }, {
     key: "render",
     value: function render() {
-      var repos = this.props.data;
+      var _state = this.state,
+          repos = _state.repos,
+          loading = _state.loading;
+
+
+      if (loading === true) {
+        return _react2.default.createElement(
+          "p",
+          null,
+          "LOADING"
+        );
+      }
 
       return _react2.default.createElement(
         "ul",
@@ -313,7 +507,13 @@ var Grid = function (_Component) {
 exports.default = Grid;
 
 /***/ }),
-/* 9 */
+/* 12 */
+/***/ (function(module, exports) {
+
+module.exports = require("isomorphic-fetch");
+
+/***/ }),
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -322,27 +522,80 @@ exports.default = Grid;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.fetchPopularRepos = fetchPopularRepos;
+exports.default = Navbar;
 
-var _isomorphicFetch = __webpack_require__(1);
+var _react = __webpack_require__(0);
 
-var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
+var _react2 = _interopRequireDefault(_react);
+
+var _reactRouterDom = __webpack_require__(1);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function fetchPopularRepos() {
-  var language = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "all";
+function Navbar() {
+  var languages = [{
+    name: "All",
+    param: "all"
+  }, {
+    name: "JavaScript",
+    param: "javascript"
+  }, {
+    name: "Ruby",
+    param: "ruby"
+  }, {
+    name: "Python",
+    param: "python"
+  }, {
+    name: "Java",
+    param: "java"
+  }];
 
-  var encodedURI = encodeURI("https://api.github.com/search/repositories?q=stars:>1+language:" + language + "&sort=stars&order=desc&type=Repositories");
+  return _react2.default.createElement(
+    "ul",
+    null,
+    languages.map(function (_ref) {
+      var name = _ref.name,
+          param = _ref.param;
+      return _react2.default.createElement(
+        "li",
+        { key: param },
+        _react2.default.createElement(
+          _reactRouterDom.NavLink,
+          {
+            activeStyle: { fontWeight: "bold" },
+            to: "/popular/" + param
+          },
+          name
+        )
+      );
+    })
+  );
+}
 
-  return (0, _isomorphicFetch2.default)(encodedURI).then(function (data) {
-    return data.json();
-  }).then(function (repos) {
-    return repos.items;
-  }).catch(function (error) {
-    console.warn(error);
-    return null;
-  });
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = NoMatch;
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function NoMatch() {
+  return _react2.default.createElement(
+    "div",
+    null,
+    "Four Oh Four"
+  );
 }
 
 /***/ })
