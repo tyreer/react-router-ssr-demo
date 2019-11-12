@@ -1,4 +1,6 @@
-# Notes
+# Notes on React Router Server Rendering by Tyler McGinnis
+
+https://tylermcginnis.com/react-router-server-rendering/
 
 - On the server some routes need to fetch data, so a `fetchInitialData` function is attached to the route object
 
